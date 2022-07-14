@@ -38,7 +38,15 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {}
+    "rules": {
+      "prettier/prettier": [
+        "error",
+        {
+          "endOfLine": "auto",
+          "singleQuote": true
+        }
+      ]
+    }
   },
   "browserslist": [
     "> 1%",
