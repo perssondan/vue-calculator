@@ -1,3 +1,3 @@
 <template>
-  <h1>Vue calculator</h1>
+    <h1>Vue calculator</h1>
 </template>
