@@ -1,12 +1,26 @@
 <template>
-    <div class="standard">
-        <CalculatorHeader />
-        <StandardDisplay :displayText="result" />
-        <StandardKeypad
-            :keypadButtonInfos="keypadButtonInfos"
-            @keypad-press="keypadPressed"
-        />
-    </div>
+    <b-container fluid>
+        <b-row class="justify-content-md-center">
+            <b-col col lg="4">
+                <CalculatorHeader />
+            </b-col>
+        </b-row>
+
+        <b-row class="justify-content-md-center">
+            <b-col col xl="5" lg="6" md="8">
+                <StandardDisplay :displayText="result" />
+            </b-col>
+        </b-row>
+
+        <b-row class="justify-content-md-center">
+            <b-col xl="5" lg="6" md="8" class="mt-2 mb-5">
+                <StandardKeypad
+                    :keypadButtonInfos="keypadButtonInfos"
+                    @keypad-press="keypadPressed"
+                />
+            </b-col>
+        </b-row>
+    </b-container>
 </template>
 
 <script>
@@ -244,13 +258,3 @@ export default {
     },
 };
 </script>
-
-<style>
-.standard {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    min-height: 100vh;
-    max-width: 450px;
-}
-</style>

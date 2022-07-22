@@ -1,6 +1,6 @@
 <template>
     <div class="display-frame">
-        <h2>{{ displayText }}</h2>
+        <div class="result">{{ displayText }}</div>
     </div>
 </template>
 
@@ -13,14 +13,18 @@ export default {
 };
 </script>
 
-<style>
-h2 {
+<style scoped lang="css">
+.display-frame {
+    display: block;
+    border: 1px solid #ffffff;
+    padding: 5px 10px;
+    margin: 10px 0;
+    border-radius: 2px;
+}
+.result {
     text-align: right;
     color: white;
-    margin: 0;
-}
-.display-frame {
-    border: 1px solid #ffffff;
-    padding: 2px 8px;
+    margin: 10px 0;
+    cursor: default;
 }
 </style>

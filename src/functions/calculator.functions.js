@@ -41,9 +41,9 @@ const calculatorParser = (cache, keypadButtonInfo) => {
 };
 
 // TODO: Implement generic parser
-const parseEntry = (currentString, digitCharacter) => {
-    //
-}
+// const parseEntry = (currentString, digitCharacter) => {
+//     //
+// }
 
 const clearLastEntry = (cache) => {
     if (cache.operator) {
