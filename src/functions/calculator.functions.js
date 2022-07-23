@@ -28,22 +28,121 @@ const calculatorParser = (cache, keypadButtonInfo) => {
 
     // Fill firstInput if no operator
     if (!cache.operator && keypadButtonInfo.type === DIGIT_TYPE) {
-        const newFirstInputString = `${cache.firstInput}${keypadButtonInfo.text}`;
-        const newFirstInputValue = Number.parseFloat(newFirstInputString);
-        if (Number.isNaN(newFirstInputValue)) {
-            return cache.firstInput.length > 0 ? cache.firstInput : '0';
+        const result = buildEntry(cache.firstInput, keypadButtonInfo.text);
+        if (result.success) {
+            cache.firstInput = result.parsedInput;
         }
-        cache.firstInput = newFirstInputString;
-        return newFirstInputString;
+        return result.display;
+    }
+
+    // Fill in operator
+    if (!cache.operator && keypadButtonInfo.type === OPERATOR_TYPE) {
+        handleOperator(keypadButtonInfo.operator);
+        cache.operator = keypadButtonInfo.operator;
+        return cache.firstInput;
+    }
+
+    // Fill second input
+    if (cache.operator && keypadButtonInfo.type === DIGIT_TYPE) {
+        const result = buildEntry(cache.secondInput, keypadButtonInfo.text);
+        if (result.success) {
+            cache.secondInput = result.parsedInput;
+        }
+        return result.display;
+    }
+
+    if (cache.operator && keypadButtonInfo.type === OPERATOR_TYPE) {
+        switch (keypadButtonInfo.operator) {
+            case 'equals':
+                break;
+            default:
+                break;
+        }
+        console.log('current cache', cache);
     }
 
     return ERROR_RESULT;
 };
 
-// TODO: Implement generic parser
-// const parseEntry = (currentString, digitCharacter) => {
-//     //
-// }
+const handleOperator = (operator) => {
+    switch (operator) {
+        case 'equals':
+            break;
+        default:
+            break;
+    }
+};
+
+// const executeEquals = (cache) => {
+
+// };
+
+// const executeAdd = (cache) => {
+//     return add(
+//         Math.parseFloat(
+//             cache.firstInput,
+//             cache.secondInput ? cache.secondInput : cache.firstInput
+//         )
+//     );
+// };
+
+const buildEntry = (currentString, digitCharacter) => {
+    const result = {
+        display: currentString.length > 0 ? currentString : '0',
+        parsedInput: '',
+        success: false,
+    };
+
+    if (
+        currentString === '0' &&
+        digitCharacter >= '0' &&
+        digitCharacter <= '9'
+    ) {
+        result.success = true;
+        result.parsedInput = digitCharacter;
+        result.display = digitCharacter;
+        return result;
+    }
+    const parsedString = `${currentString}${digitCharacter}`;
+    // Make sure no duplicate decimal separators.
+    if (occurrences(parsedString, '.', false) > 1) {
+        return result;
+    }
+
+    const parsedStringNumber = Number.parseFloat(parsedString);
+    if (Number.isNaN(parsedStringNumber)) {
+        return result;
+    }
+    const testParseBack = `${parsedStringNumber}`;
+    console.log('back parse', testParseBack);
+    result.success = true;
+    result.parsedInput = parsedString;
+    result.display = parsedString;
+    return result;
+};
+
+function occurrences(string, subString, allowOverlapping) {
+    string += '';
+    subString += '';
+    if (subString.length <= 0) return string.length + 1;
+
+    var n = 0,
+        pos = 0,
+        step = allowOverlapping ? 1 : subString.length;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        pos = string.indexOf(subString, pos);
+        if (pos >= 0) {
+            ++n;
+            pos += step;
+        } else break;
+    }
+    return n;
+}
+// const humanize = (x) => {
+//     return x.replace(/\.?0*$/, '');
+// };
 
 const clearLastEntry = (cache) => {
     if (cache.operator) {
