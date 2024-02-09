@@ -20,6 +20,11 @@
                 />
             </b-col>
         </b-row>
+        <b-row>
+            <li v-for="item in calcCache" :key="item.id">
+                {{ item.text }}
+            </li>
+        </b-row>
     </b-container>
 </template>
 
@@ -39,220 +44,214 @@ export default {
     },
     methods: {
         keypadPressed(keypadButtonInfo) {
-            console.log(keypadButtonInfo);
+            console.log('keypadButtonInfo', keypadButtonInfo, this.calcCache);
 
-            this.result = calculatorFunctions.calculatorParser(
-                this.operationsCache,
+            const newCalcCache = calculatorFunctions.calculatorParserV2(
+                this.calcCache,
                 keypadButtonInfo
             );
+            console.log('resultV2', newCalcCache, this.calcCache);
+            this.calcCache = newCalcCache;
 
-            // this.result = calculatorFunctions.calculate(
-            //     this.operations,
-            //     keypadButtonInfo
-            // );
-            console.log('operations', this.operationsCache, this.result);
-            // if (keypadButtonInfo.type === 'digit') {
-            //     this.result = this.result + keypadButtonInfo.text;
-            // }
-            // switch (keypadButtonInfo.operator) {
-            //     case 'clear':
-            //         this.result = '0';
-            //         this.operations = [];
-            //         break;
-            //     case 'clearLastEntry':
-            //         this.result = '0';
-            //         break;
-            //     case 'equals':
-            //         break;
-            //     default:
-            //         console.log(`${keypadButtonInfo.operator} not handled`);
-            //         break;
-            // }
+            this.result = calculatorFunctions.getDisplayText(this.calcCache);
+        },
+        keyPressed(event) {
+            const { key } = event;
+
+            const keypadButtonInfo = this.keypadButtonInfos.find(
+                (keypadButton) => keypadButton.text === key
+            );
+
+            if (keypadButtonInfo) {
+                this.keypadPressed(keypadButtonInfo);
+            }
         },
     },
     data() {
         return {
             keypadButtonInfos: [],
-            operations: [],
             result: '0',
-            operationsCache: {
-                firstInput: '',
-                firstValue: 0,
-                secondInput: '',
-                secondValue: 0,
-                operator: null,
-            },
+            calcCache: [],
         };
     },
+    unmounted() {
+        window.removeEventListener('keydown', this.keyPressed);
+    },
     created() {
+        window.addEventListener('keydown', this.keyPressed);
+        this.calcCache.push({
+            text: '0',
+            type: calculatorFunctions.DIGIT_TYPE,
+        });
+        this.result = calculatorFunctions.getDisplayText(this.calcCache);
         this.keypadButtonInfos = [
             {
                 id: 1,
                 text: '%',
                 operator: 'percent',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 2,
                 text: 'CE',
                 operator: 'clearLastEntry',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 3,
                 text: 'C',
                 operator: 'clear',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 4,
                 text: '&#9224;',
                 operator: 'backspace',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 5,
                 text: '&#185;/&#8339;',
                 operator: 'oneOverX',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 6,
                 text: '&#8339;&#178;',
                 operator: 'xSquared',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 7,
                 text: '&#178;&#8730;&#8339;',
                 operator: 'squareRoot',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 8,
                 text: '/',
                 operator: 'divide',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 9,
                 text: '7',
                 operator: 'seven',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 10,
                 text: '8',
                 operator: 'eight',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 11,
                 text: '9',
                 operator: 'nine',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 12,
                 text: 'x',
                 operator: 'multiply',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 13,
                 text: '4',
                 operator: 'four',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 14,
                 text: '5',
                 operator: 'five',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 15,
                 text: '6',
                 operator: 'six',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 16,
                 text: '-',
                 operator: 'subtract',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 17,
                 text: '1',
                 operator: 'one',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 18,
                 text: '2',
                 operator: 'two',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 19,
                 text: '3',
                 operator: 'three',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 20,
                 text: '+',
                 operator: 'add',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 21,
                 text: '&#177;',
                 operator: 'toggleSign',
                 color: '#444',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
             {
                 id: 22,
                 text: '0',
                 operator: 'zero',
                 color: 'black',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 23,
                 text: '.',
                 operator: 'decimalPoint',
                 color: '#444',
-                type: 'digit',
+                type: calculatorFunctions.DIGIT_TYPE,
             },
             {
                 id: 24,
                 text: '=',
                 operator: 'equals',
                 color: 'green',
-                type: 'operator',
+                type: calculatorFunctions.OPERATOR_TYPE,
             },
         ];
     },

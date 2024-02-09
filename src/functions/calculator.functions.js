@@ -1,194 +1,217 @@
 const OPERATOR_TYPE = 'operator';
 const DIGIT_TYPE = 'digit';
-const ERROR_RESULT = 'ERROR';
+// const ERROR_RESULT = 'ERROR';
 const OPERATOR_CLEAR = 'clear';
 const OPERATOR_CLEAR_LAST = 'clearLastEntry';
+const ZERO = '0';
 
-const calculatorParser = (cache, keypadButtonInfo) => {
-    if (
-        keypadButtonInfo.type === OPERATOR_TYPE &&
-        keypadButtonInfo.operator === OPERATOR_CLEAR
-    ) {
-        resetCache(cache);
-        return '0';
-    }
-
-    if (
-        keypadButtonInfo.type === OPERATOR_TYPE &&
-        keypadButtonInfo.operator === OPERATOR_CLEAR_LAST
-    ) {
-        clearLastEntry(cache);
-        return '0';
-    }
-
-    // keypadButtonInfo must be digit if first input is empty
-    if (cache.firstInput.length === 0 && keypadButtonInfo.type !== DIGIT_TYPE) {
-        return ERROR_RESULT;
-    }
-
-    // Fill firstInput if no operator
-    if (!cache.operator && keypadButtonInfo.type === DIGIT_TYPE) {
-        const result = buildEntry(cache.firstInput, keypadButtonInfo.text);
-        if (result.success) {
-            cache.firstInput = result.parsedInput;
-        }
-        return result.display;
-    }
-
-    // Fill in operator
-    if (!cache.operator && keypadButtonInfo.type === OPERATOR_TYPE) {
-        handleOperator(keypadButtonInfo.operator);
-        cache.operator = keypadButtonInfo.operator;
-        return cache.firstInput;
-    }
-
-    // Fill second input
-    if (cache.operator && keypadButtonInfo.type === DIGIT_TYPE) {
-        const result = buildEntry(cache.secondInput, keypadButtonInfo.text);
-        if (result.success) {
-            cache.secondInput = result.parsedInput;
-        }
-        return result.display;
-    }
-
-    if (cache.operator && keypadButtonInfo.type === OPERATOR_TYPE) {
-        switch (keypadButtonInfo.operator) {
-            case 'equals':
-                break;
-            default:
-                break;
-        }
-        console.log('current cache', cache);
-    }
-
-    return ERROR_RESULT;
+const OPERATOR_TYPES = {
+    EQUALS: 'equals',
 };
 
-const handleOperator = (operator) => {
-    switch (operator) {
-        case 'equals':
-            break;
-        default:
-            break;
-    }
+const CalculatorConfigStandard = {
+    percentage: {
+        id: crypto.randomUUID(),
+        operator: 'percent',
+        type: OPERATOR_TYPE,
+    },
+    clearLastEntry: {
+        id: crypto.randomUUID(),
+        operator: 'clearLastEntry',
+        type: OPERATOR_TYPE,
+    },
+    clear: {
+        id: crypto.randomUUID(),
+        operator: 'clear',
+        type: OPERATOR_TYPE,
+    },
+    backspace: {
+        id: crypto.randomUUID(),
+        operator: 'backspace',
+        type: OPERATOR_TYPE,
+    },
+    oneOverX: {
+        id: crypto.randomUUID(),
+        operator: 'oneOverX',
+        type: OPERATOR_TYPE,
+    },
+    xSquared: {
+        id: crypto.randomUUID(),
+        operator: 'xSquared',
+        type: OPERATOR_TYPE,
+    },
+    squareRoot: {
+        id: crypto.randomUUID(),
+        operator: 'squareRoot',
+        type: OPERATOR_TYPE,
+    },
 };
 
-// const executeEquals = (cache) => {
+const isClearOperation = (keypadButtonInfo) =>
+    keypadButtonInfo.type === OPERATOR_TYPE &&
+    keypadButtonInfo.operator === OPERATOR_CLEAR;
 
+const isClearLastOperation = (keypadButtonInfo) =>
+    keypadButtonInfo.type === OPERATOR_TYPE &&
+    keypadButtonInfo.operator === OPERATOR_CLEAR_LAST;
+
+// const isFirstInput = (cache, keypadButtonInfo) =>
+//     !cache.operator && keypadButtonInfo.type === DIGIT_TYPE;
+
+// const isSecondInput = (cache, keypadButtonInfo) =>
+//     cache.operator && keypadButtonInfo.type === DIGIT_TYPE;
+
+// const isOperatorInput = (cache, keypadButtonInfo) =>
+//     !cache.operator && keypadButtonInfo.type === OPERATOR_TYPE;
+
+/**
+ * Parse keypadButton infos into calculator cache.
+ * @param {Array} calcCache Array of input objects
+ * @param {*} keypadButtonInfo Information of pressed key
+ * @returns {Array} Returns new array of input objects
+ */
+const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
+    if (isClearOperation(keypadButtonInfo)) {
+        return [createCacheItem(ZERO, DIGIT_TYPE)];
+    }
+
+    // const clonedCache = structuredClone(calcCache);
+
+    if (isClearLastOperation(keypadButtonInfo)) {
+        return removeLastOperation(calcCache);
+    }
+
+    const lastEntry = calcCache.slice(-1)[0];
+    if (
+        lastEntry?.type === OPERATOR_TYPE &&
+        keypadButtonInfo.type === OPERATOR_TYPE
+    ) {
+        // replace last operation
+        return replaceLastOperation(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    } else if (
+        lastEntry?.type === OPERATOR_TYPE &&
+        keypadButtonInfo.type === DIGIT_TYPE
+    ) {
+        return addOperation(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    } else if (
+        lastEntry?.type === DIGIT_TYPE &&
+        keypadButtonInfo.type === OPERATOR_TYPE
+    ) {
+        return addOperation(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    } else if (
+        lastEntry?.type === DIGIT_TYPE &&
+        keypadButtonInfo.type === DIGIT_TYPE
+    ) {
+        // update last entry
+        const text = `${lastEntry.text}${keypadButtonInfo.text}`;
+        return replaceLastOperation(
+            calcCache,
+            createCacheItem(text, DIGIT_TYPE)
+        );
+    } else if (!lastEntry && keypadButtonInfo.type === DIGIT_TYPE) {
+        return addOperation(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    }
+
+    if (
+        keypadButtonInfo.type === OPERATOR_TYPE &&
+        keypadButtonInfo.operator === OPERATOR_TYPES.EQUALS
+    ) {
+        // evaluate
+        // const result = evaluateCache(clonedCache);
+        // clonedCache.splice(0, clonedCache.length, result);
+    }
+
+    return structuredClone(calcCache);
+};
+
+const createCacheItem = (text, type) => {
+    return { text, type };
+};
+
+const getDisplayText = (cache) => {
+    return cache.findLast((x) => x.type === DIGIT_TYPE)?.text || ZERO;
+};
+
+// const buildEntry = (currentString, digitCharacter) => {
+//     console.log('currentString', currentString, digitCharacter);
+//     const result = {
+//         display: currentString.length > 0 ? currentString : '0',
+//         parsedInput: '',
+//         success: false,
+//     };
+
+//     const parsedString = `${currentString}${digitCharacter}`;
+//     console.log('parsedString', parsedString);
+
+//     // Guard that we can't type multiple zeroes at start
+//     if (isLeadingZeroes(currentString, digitCharacter)) {
+//         result.success = true;
+//         result.parsedInput = digitCharacter;
+//         result.display = digitCharacter;
+//         return result;
+//     }
+
+//     // Make sure no duplicate decimal separators.
+//     if (isDuplicateDecimal(parsedString)) {
+//         return result;
+//     }
+
+//     if (isNaN(parsedString)) {
+//         return result;
+//     }
+
+//     result.success = true;
+//     result.parsedInput = parsedString;
+//     result.display = parsedString;
+//     return result;
 // };
 
-// const executeAdd = (cache) => {
-//     return add(
-//         Math.parseFloat(
-//             cache.firstInput,
-//             cache.secondInput ? cache.secondInput : cache.firstInput
-//         )
+// const isDuplicateDecimal = (valueString) => {
+//     return occurrences(valueString, '.', false) > 1;
+// };
+
+// const isNaN = (valueString) => {
+//     const parsedValue = Number.parseFloat(valueString);
+//     return Number.isNaN(parsedValue);
+// };
+
+// function isLeadingZeroes(currentString, digitCharacter) {
+//     return (
+//         currentString === '0' && digitCharacter >= '0' && digitCharacter <= '9'
 //     );
-// };
+// }
 
-const buildEntry = (currentString, digitCharacter) => {
-    const result = {
-        display: currentString.length > 0 ? currentString : '0',
-        parsedInput: '',
-        success: false,
-    };
+// function occurrences(string, subString, allowOverlapping) {
+//     string += '';
+//     subString += '';
+//     if (subString.length <= 0) return string.length + 1;
 
-    if (
-        currentString === '0' &&
-        digitCharacter >= '0' &&
-        digitCharacter <= '9'
-    ) {
-        result.success = true;
-        result.parsedInput = digitCharacter;
-        result.display = digitCharacter;
-        return result;
-    }
-    const parsedString = `${currentString}${digitCharacter}`;
-    // Make sure no duplicate decimal separators.
-    if (occurrences(parsedString, '.', false) > 1) {
-        return result;
-    }
+//     var n = 0,
+//         pos = 0,
+//         step = allowOverlapping ? 1 : subString.length;
 
-    const parsedStringNumber = Number.parseFloat(parsedString);
-    if (Number.isNaN(parsedStringNumber)) {
-        return result;
-    }
-    const testParseBack = `${parsedStringNumber}`;
-    console.log('back parse', testParseBack);
-    result.success = true;
-    result.parsedInput = parsedString;
-    result.display = parsedString;
-    return result;
-};
-
-function occurrences(string, subString, allowOverlapping) {
-    string += '';
-    subString += '';
-    if (subString.length <= 0) return string.length + 1;
-
-    var n = 0,
-        pos = 0,
-        step = allowOverlapping ? 1 : subString.length;
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        pos = string.indexOf(subString, pos);
-        if (pos >= 0) {
-            ++n;
-            pos += step;
-        } else break;
-    }
-    return n;
-}
-// const humanize = (x) => {
-//     return x.replace(/\.?0*$/, '');
-// };
-
-const clearLastEntry = (cache) => {
-    if (cache.operator) {
-        cache.secondInput = '';
-        cache.secondValue = 0;
-        return;
-    }
-
-    if (!cache.operator) {
-        cache.firstInput = '0';
-        cache.firstValue = 0;
-        return;
-    }
-};
-
-const resetCache = (cache) => {
-    cache.firstInput = '0';
-    cache.firstValue = 0;
-    cache.secondInput = '0';
-    cache.secondValue = 0;
-    cache.operator = null;
-};
-
-const calculate = (operations, keypadButtonInfo) => {
-    if (
-        keypadButtonInfo.type === OPERATOR_TYPE &&
-        keypadButtonInfo.operator === 'clear'
-    ) {
-        operations = [];
-        return '0';
-    }
-
-    if (operations.length === 0 && keypadButtonInfo.type === OPERATOR_TYPE) {
-        return '0';
-    }
-
-    if (
-        keypadButtonInfo.type === OPERATOR_TYPE &&
-        keypadButtonInfo.operator === 'clearLastEntry'
-    ) {
-        operations.pop();
-        return '';
-    }
-
-    return 'ERROR';
-};
+//     // eslint-disable-next-line no-constant-condition
+//     while (true) {
+//         pos = string.indexOf(subString, pos);
+//         if (pos >= 0) {
+//             ++n;
+//             pos += step;
+//         } else break;
+//     }
+//     return n;
+// }
 
 const add = (firstTerm, secondTerm) => {
     return firstTerm + secondTerm;
@@ -227,8 +250,6 @@ const percentage = (dividend) => {
 };
 
 export default {
-    calculatorParser,
-    calculate,
     add,
     subtract,
     multiply,
@@ -238,4 +259,49 @@ export default {
     xSquared,
     toggleSign,
     percentage,
+    OPERATOR_TYPE,
+    DIGIT_TYPE,
+    CalculatorConfigStandard,
+    calculatorParserV2,
+    getDisplayText,
 };
+
+/**
+ * Add operation to operations array.
+ * @param {Array} operations Array of operations
+ * @param {*} operation Operation to add
+ * @returns {Array} Returns new array of operations
+ */
+function addOperation(operations, operation) {
+    return operations.toSpliced(operations.length, 0, operation);
+}
+
+/**
+ * Replace last operation in operations array.
+ * @param {Array} operations Array of operations
+ * @param {*} operation Operation to replace
+ * @returns {Array} Returns new array of operations
+ */
+function replaceLastOperation(operations, operation) {
+    return operations.toSpliced(-1, 1, operation);
+}
+
+/**
+ * Remove last operation from operations array.
+ * @param {Array} operations Array of operations
+ * @returns {Array} Returns new array of operations
+ */
+function removeLastOperation(operations) {
+    const newOperations = operations.toSpliced(-1, 1);
+    // operations.slice(0, -1);
+    if (newOperations.length === 0) {
+        return [createCacheItem(ZERO, DIGIT_TYPE)];
+    }
+
+    return newOperations;
+}
+
+// eslint-disable-next-line no-unused-vars
+function buildText(currentText, textToAdd) {
+    return `${currentText}${textToAdd}`;
+}
