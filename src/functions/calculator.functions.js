@@ -1,68 +1,57 @@
-const OPERATOR_TYPE = 'operator';
-const DIGIT_TYPE = 'digit';
 // const ERROR_RESULT = 'ERROR';
 const OPERATOR_CLEAR = 'clear';
-const OPERATOR_CLEAR_LAST = 'clearLastEntry';
+const OPERATOR_CLEAR_ENTRY = 'clearLastEntry';
 const ZERO = '0';
-
-const OPERATOR_TYPES = {
-    EQUALS: 'equals',
+const INPUT_TYPES = {
+    OPERATOR: 'operator',
+    DIGIT: 'digit',
 };
 
 const CalculatorConfigStandard = {
     percentage: {
         id: crypto.randomUUID(),
         operator: 'percent',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     clearLastEntry: {
         id: crypto.randomUUID(),
         operator: 'clearLastEntry',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     clear: {
         id: crypto.randomUUID(),
         operator: 'clear',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     backspace: {
         id: crypto.randomUUID(),
         operator: 'backspace',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     oneOverX: {
         id: crypto.randomUUID(),
         operator: 'oneOverX',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     xSquared: {
         id: crypto.randomUUID(),
         operator: 'xSquared',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
     squareRoot: {
         id: crypto.randomUUID(),
         operator: 'squareRoot',
-        type: OPERATOR_TYPE,
+        type: INPUT_TYPES.OPERATOR,
     },
 };
 
-const isClearOperation = (keypadButtonInfo) =>
-    keypadButtonInfo.type === OPERATOR_TYPE &&
+const isClearInput = (keypadButtonInfo) =>
+    keypadButtonInfo.type === INPUT_TYPES.OPERATOR &&
     keypadButtonInfo.operator === OPERATOR_CLEAR;
 
-const isClearLastOperation = (keypadButtonInfo) =>
-    keypadButtonInfo.type === OPERATOR_TYPE &&
-    keypadButtonInfo.operator === OPERATOR_CLEAR_LAST;
-
-// const isFirstInput = (cache, keypadButtonInfo) =>
-//     !cache.operator && keypadButtonInfo.type === DIGIT_TYPE;
-
-// const isSecondInput = (cache, keypadButtonInfo) =>
-//     cache.operator && keypadButtonInfo.type === DIGIT_TYPE;
-
-// const isOperatorInput = (cache, keypadButtonInfo) =>
-//     !cache.operator && keypadButtonInfo.type === OPERATOR_TYPE;
+const isClearEntryInput = (keypadButtonInfo) =>
+    keypadButtonInfo.type === INPUT_TYPES.OPERATOR &&
+    keypadButtonInfo.operator === OPERATOR_CLEAR_ENTRY;
 
 /**
  * Parse keypadButton infos into calculator cache.
@@ -71,69 +60,89 @@ const isClearLastOperation = (keypadButtonInfo) =>
  * @returns {Array} Returns new array of input objects
  */
 const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
-    if (isClearOperation(keypadButtonInfo)) {
-        return [createCacheItem(ZERO, DIGIT_TYPE)];
+    if (isClearInput(keypadButtonInfo)) {
+        return [createCacheItem(ZERO, INPUT_TYPES.DIGIT)];
     }
 
-    // const clonedCache = structuredClone(calcCache);
-
-    if (isClearLastOperation(keypadButtonInfo)) {
-        return removeLastOperation(calcCache);
+    if (isClearEntryInput(keypadButtonInfo)) {
+        return removeLastEntry(calcCache);
     }
 
     const lastEntry = calcCache.slice(-1)[0];
-    if (
-        lastEntry?.type === OPERATOR_TYPE &&
-        keypadButtonInfo.type === OPERATOR_TYPE
-    ) {
-        // replace last operation
-        return replaceLastOperation(
-            calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
-        );
-    } else if (
-        lastEntry?.type === OPERATOR_TYPE &&
-        keypadButtonInfo.type === DIGIT_TYPE
-    ) {
-        return addOperation(
-            calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
-        );
-    } else if (
-        lastEntry?.type === DIGIT_TYPE &&
-        keypadButtonInfo.type === OPERATOR_TYPE
-    ) {
-        return addOperation(
-            calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
-        );
-    } else if (
-        lastEntry?.type === DIGIT_TYPE &&
-        keypadButtonInfo.type === DIGIT_TYPE
-    ) {
-        // update last entry
-        const text = `${lastEntry.text}${keypadButtonInfo.text}`;
-        return replaceLastOperation(
-            calcCache,
-            createCacheItem(text, DIGIT_TYPE)
-        );
-    } else if (!lastEntry && keypadButtonInfo.type === DIGIT_TYPE) {
-        return addOperation(
+    if (isReplaceOperator(lastEntry, keypadButtonInfo)) {
+        return replaceLastEntry(
             calcCache,
             createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
         );
     }
 
-    if (
-        keypadButtonInfo.type === OPERATOR_TYPE &&
-        keypadButtonInfo.operator === OPERATOR_TYPES.EQUALS
-    ) {
-        // evaluate
-        // const result = evaluateCache(clonedCache);
-        // clonedCache.splice(0, clonedCache.length, result);
+    if (isAddFirstDigit(lastEntry, keypadButtonInfo)) {
+        const text = fixInput(keypadButtonInfo.text);
+        return addEntry(
+            calcCache,
+            createCacheItem(text, keypadButtonInfo.type)
+        );
     }
+
+    if (isAddOperator(lastEntry, keypadButtonInfo)) {
+        return addEntry(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    }
+
+    if (isAddConsecutiveDigit(lastEntry, keypadButtonInfo)) {
+        const text = fixInput(`${lastEntry.text}${keypadButtonInfo.text}`);
+
+        console.log(`newText:${text} - oldText:${lastEntry.text}`);
+
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(text, INPUT_TYPES.DIGIT)
+        );
+    }
+
+    if (!lastEntry && keypadButtonInfo.type === INPUT_TYPES.DIGIT) {
+        return addEntry(
+            calcCache,
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+        );
+    }
+
+    handleOperator();
+    handleDigit();
 
     return structuredClone(calcCache);
+};
+
+const handleOperator = () => {
+    // this will do actual calculations;
+};
+
+const handleDigit = () => {
+    // this will only parse input
+};
+
+const fixInput = (input) => {
+    // replace leading decimal separator with zero
+    let fixedInput = input === '.' ? '0.' : input;
+
+    // remove leading zeroes
+    fixedInput = /^0[0-9]+$/.test(fixedInput)
+        ? fixedInput.substring(1)
+        : fixedInput;
+
+    // limit no of decimal separators
+    const decimalSplitInput = fixedInput.split('.');
+    fixedInput =
+        decimalSplitInput.length > 2
+            ? `${decimalSplitInput[0]}.${decimalSplitInput[1]}`
+            : fixedInput;
+
+    // limit length
+    fixedInput = fixedInput.substring(0, 16);
+
+    return fixedInput;
 };
 
 const createCacheItem = (text, type) => {
@@ -141,77 +150,8 @@ const createCacheItem = (text, type) => {
 };
 
 const getDisplayText = (cache) => {
-    return cache.findLast((x) => x.type === DIGIT_TYPE)?.text || ZERO;
+    return cache.findLast((x) => x.type === INPUT_TYPES.DIGIT)?.text || ZERO;
 };
-
-// const buildEntry = (currentString, digitCharacter) => {
-//     console.log('currentString', currentString, digitCharacter);
-//     const result = {
-//         display: currentString.length > 0 ? currentString : '0',
-//         parsedInput: '',
-//         success: false,
-//     };
-
-//     const parsedString = `${currentString}${digitCharacter}`;
-//     console.log('parsedString', parsedString);
-
-//     // Guard that we can't type multiple zeroes at start
-//     if (isLeadingZeroes(currentString, digitCharacter)) {
-//         result.success = true;
-//         result.parsedInput = digitCharacter;
-//         result.display = digitCharacter;
-//         return result;
-//     }
-
-//     // Make sure no duplicate decimal separators.
-//     if (isDuplicateDecimal(parsedString)) {
-//         return result;
-//     }
-
-//     if (isNaN(parsedString)) {
-//         return result;
-//     }
-
-//     result.success = true;
-//     result.parsedInput = parsedString;
-//     result.display = parsedString;
-//     return result;
-// };
-
-// const isDuplicateDecimal = (valueString) => {
-//     return occurrences(valueString, '.', false) > 1;
-// };
-
-// const isNaN = (valueString) => {
-//     const parsedValue = Number.parseFloat(valueString);
-//     return Number.isNaN(parsedValue);
-// };
-
-// function isLeadingZeroes(currentString, digitCharacter) {
-//     return (
-//         currentString === '0' && digitCharacter >= '0' && digitCharacter <= '9'
-//     );
-// }
-
-// function occurrences(string, subString, allowOverlapping) {
-//     string += '';
-//     subString += '';
-//     if (subString.length <= 0) return string.length + 1;
-
-//     var n = 0,
-//         pos = 0,
-//         step = allowOverlapping ? 1 : subString.length;
-
-//     // eslint-disable-next-line no-constant-condition
-//     while (true) {
-//         pos = string.indexOf(subString, pos);
-//         if (pos >= 0) {
-//             ++n;
-//             pos += step;
-//         } else break;
-//     }
-//     return n;
-// }
 
 const add = (firstTerm, secondTerm) => {
     return firstTerm + secondTerm;
@@ -259,49 +199,71 @@ export default {
     xSquared,
     toggleSign,
     percentage,
-    OPERATOR_TYPE,
-    DIGIT_TYPE,
+    INPUT_TYPES,
     CalculatorConfigStandard,
     calculatorParserV2,
     getDisplayText,
 };
 
+function isAddFirstDigit(lastEntry, keypadButtonInfo) {
+    return (
+        lastEntry?.type === INPUT_TYPES.OPERATOR &&
+        keypadButtonInfo.type === INPUT_TYPES.DIGIT
+    );
+}
+
+function isAddConsecutiveDigit(lastEntry, keypadButtonInfo) {
+    return (
+        lastEntry?.type === INPUT_TYPES.DIGIT &&
+        keypadButtonInfo.type === INPUT_TYPES.DIGIT
+    );
+}
+
+function isAddOperator(lastEntry, keypadButtonInfo) {
+    return (
+        lastEntry?.type === INPUT_TYPES.DIGIT &&
+        keypadButtonInfo.type === INPUT_TYPES.OPERATOR
+    );
+}
+
+function isReplaceOperator(lastEntry, keypadButtonInfo) {
+    return (
+        lastEntry?.type === INPUT_TYPES.OPERATOR &&
+        keypadButtonInfo.type === INPUT_TYPES.OPERATOR
+    );
+}
+
 /**
  * Add operation to operations array.
- * @param {Array} operations Array of operations
- * @param {*} operation Operation to add
+ * @param {Array} entries Array of operations
+ * @param {*} entry Operation to add
  * @returns {Array} Returns new array of operations
  */
-function addOperation(operations, operation) {
-    return operations.toSpliced(operations.length, 0, operation);
+function addEntry(entries, entry) {
+    return entries.toSpliced(entries.length, 0, entry);
 }
 
 /**
  * Replace last operation in operations array.
- * @param {Array} operations Array of operations
- * @param {*} operation Operation to replace
+ * @param {Array} entries Array of operations
+ * @param {*} entry Operation to with replace
  * @returns {Array} Returns new array of operations
  */
-function replaceLastOperation(operations, operation) {
-    return operations.toSpliced(-1, 1, operation);
+function replaceLastEntry(entries, entry) {
+    return entries.toSpliced(-1, 1, entry);
 }
 
 /**
  * Remove last operation from operations array.
- * @param {Array} operations Array of operations
+ * @param {Array} entries Array of operations
  * @returns {Array} Returns new array of operations
  */
-function removeLastOperation(operations) {
-    const newOperations = operations.toSpliced(-1, 1);
+function removeLastEntry(entries) {
+    const newEntries = entries.toSpliced(-1, 1);
     // operations.slice(0, -1);
-    if (newOperations.length === 0) {
-        return [createCacheItem(ZERO, DIGIT_TYPE)];
+    if (newEntries.length === 0) {
+        return [createCacheItem(ZERO, INPUT_TYPES.DIGIT)];
     }
 
-    return newOperations;
-}
-
-// eslint-disable-next-line no-unused-vars
-function buildText(currentText, textToAdd) {
-    return `${currentText}${textToAdd}`;
+    return newEntries;
 }
