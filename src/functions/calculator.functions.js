@@ -7,7 +7,65 @@ const INPUT_TYPES = {
     DIGIT: 'digit',
 };
 
-const CalculatorConfigStandard = {
+const DIGITS = {
+    zero: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '0',
+    },
+    one: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '1',
+    },
+    two: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '2',
+    },
+    three: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '3',
+    },
+    four: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '4',
+    },
+    five: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '5',
+    },
+    six: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '6',
+    },
+    seven: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '7',
+    },
+    eight: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '8',
+    },
+    nine: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '9',
+    },
+    decimalPoint: {
+        id: crypto.randomUUID(),
+        type: INPUT_TYPES.DIGIT,
+        digit: '.',
+    },
+};
+
+const OPERATORS = {
     percentage: {
         id: crypto.randomUUID(),
         operator: 'percent',
@@ -43,6 +101,36 @@ const CalculatorConfigStandard = {
         operator: 'squareRoot',
         type: INPUT_TYPES.OPERATOR,
     },
+    divide: {
+        id: crypto.randomUUID(),
+        operator: 'divide',
+        type: INPUT_TYPES.OPERATOR,
+    },
+    toggleSign: {
+        id: crypto.randomUUID(),
+        operator: 'toggleSign',
+        type: INPUT_TYPES.OPERATOR,
+    },
+    multiply: {
+        id: crypto.randomUUID(),
+        operator: 'multiply',
+        type: INPUT_TYPES.OPERATOR,
+    },
+    subtract: {
+        id: crypto.randomUUID(),
+        operator: 'subtract',
+        type: INPUT_TYPES.OPERATOR,
+    },
+    add: {
+        id: crypto.randomUUID(),
+        operator: 'add',
+        type: INPUT_TYPES.OPERATOR,
+    },
+    equals: {
+        id: crypto.randomUUID(),
+        operator: 'equals',
+        type: INPUT_TYPES.OPERATOR,
+    },
 };
 
 const isClearInput = (keypadButtonInfo) =>
@@ -53,13 +141,7 @@ const isClearEntryInput = (keypadButtonInfo) =>
     keypadButtonInfo.type === INPUT_TYPES.OPERATOR &&
     keypadButtonInfo.operator === OPERATOR_CLEAR_ENTRY;
 
-/**
- * Parse keypadButton infos into calculator cache.
- * @param {Array} calcCache Array of input objects
- * @param {*} keypadButtonInfo Information of pressed key
- * @returns {Array} Returns new array of input objects
- */
-const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
+const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
     if (isClearInput(keypadButtonInfo)) {
         return [createCacheItem(ZERO, INPUT_TYPES.DIGIT)];
     }
@@ -70,6 +152,7 @@ const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
 
     const lastEntry = calcCache.slice(-1)[0];
     if (isReplaceOperator(lastEntry, keypadButtonInfo)) {
+        console.log('replace operator');
         return replaceLastEntry(
             calcCache,
             createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
@@ -77,6 +160,7 @@ const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
     }
 
     if (isAddFirstDigit(lastEntry, keypadButtonInfo)) {
+        console.log('add first digit');
         const text = fixInput(keypadButtonInfo.text);
         return addEntry(
             calcCache,
@@ -85,6 +169,7 @@ const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
     }
 
     if (isAddOperator(lastEntry, keypadButtonInfo)) {
+        console.log('add operator');
         return addEntry(
             calcCache,
             createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
@@ -92,9 +177,8 @@ const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
     }
 
     if (isAddConsecutiveDigit(lastEntry, keypadButtonInfo)) {
+        console.log('add consecutive digit');
         const text = fixInput(`${lastEntry.text}${keypadButtonInfo.text}`);
-
-        console.log(`newText:${text} - oldText:${lastEntry.text}`);
 
         return replaceLastEntry(
             calcCache,
@@ -103,24 +187,29 @@ const calculatorParserV2 = (calcCache, keypadButtonInfo) => {
     }
 
     if (!lastEntry && keypadButtonInfo.type === INPUT_TYPES.DIGIT) {
-        return addEntry(
-            calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
-        );
+        throw new Error('No last entry. Expe');
     }
 
-    handleOperator();
-    handleDigit();
+    console.warn('No action taken');
 
     return structuredClone(calcCache);
 };
 
-const handleOperator = () => {
-    // this will do actual calculations;
-};
+/**
+ * Parse keypadButton infos into calculator cache.
+ * @param {Array} calcCache Array of input objects
+ * @param {*} keypadButtonInfo Information of pressed key
+ * @returns {Array} Returns new array of input objects
+ */
+const calculatorParser = (calcCache, keypadButtonInfo) => {
+    const updatedCache = updateCacheFromInput(calcCache, keypadButtonInfo);
 
-const handleDigit = () => {
-    // this will only parse input
+    const lastEntry = calcCache.slice(-1)[0];
+    if (lastEntry?.type === INPUT_TYPES.OPERATOR) {
+        return updatedCache;
+    }
+
+    return updatedCache;
 };
 
 const fixInput = (input) => {
@@ -200,14 +289,15 @@ export default {
     toggleSign,
     percentage,
     INPUT_TYPES,
-    CalculatorConfigStandard,
-    calculatorParserV2,
+    OPERATORS,
+    DIGITS,
+    calculatorParser,
     getDisplayText,
 };
 
 function isAddFirstDigit(lastEntry, keypadButtonInfo) {
     return (
-        lastEntry?.type === INPUT_TYPES.OPERATOR &&
+        (!lastEntry || lastEntry.type === INPUT_TYPES.OPERATOR) &&
         keypadButtonInfo.type === INPUT_TYPES.DIGIT
     );
 }
