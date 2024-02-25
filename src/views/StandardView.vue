@@ -107,6 +107,7 @@ export default {
                 ...calculatorFunctions.OPERATORS.backspace,
                 text: '&#9224;',
                 color: '#444',
+                key: 'Backspace',
             },
             {
                 ...calculatorFunctions.OPERATORS.oneOverX,
@@ -200,7 +201,7 @@ export default {
                 color: 'black',
             },
             {
-                ...calculatorFunctions.DIGITS.decimalPoint,
+                ...calculatorFunctions.DIGITS.decimalSeparator,
                 text: '.',
                 color: '#444',
             },

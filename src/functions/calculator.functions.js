@@ -1,6 +1,4 @@
 // const ERROR_RESULT = 'ERROR';
-const OPERATOR_CLEAR = 'clear';
-const OPERATOR_CLEAR_ENTRY = 'clearLastEntry';
 const ZERO = '0';
 const INPUT_TYPES = {
     OPERATOR: 'operator',
@@ -58,7 +56,7 @@ const DIGITS = {
         type: INPUT_TYPES.DIGIT,
         digit: '9',
     },
-    decimalPoint: {
+    decimalSeparator: {
         id: crypto.randomUUID(),
         type: INPUT_TYPES.DIGIT,
         digit: '.',
@@ -133,56 +131,63 @@ const OPERATORS = {
     },
 };
 
-const isClearInput = (keypadButtonInfo) =>
-    keypadButtonInfo.type === INPUT_TYPES.OPERATOR &&
-    keypadButtonInfo.operator === OPERATOR_CLEAR;
+const isClearAllEntries = (keypadButtonInfo) =>
+    keypadButtonInfo.id === OPERATORS.clear.id;
 
-const isClearEntryInput = (keypadButtonInfo) =>
-    keypadButtonInfo.type === INPUT_TYPES.OPERATOR &&
-    keypadButtonInfo.operator === OPERATOR_CLEAR_ENTRY;
+const isClearLastEntry = (keypadButtonInfo) =>
+    keypadButtonInfo.id == OPERATORS.clearLastEntry.id;
 
 const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
-    if (isClearInput(keypadButtonInfo)) {
-        return [createCacheItem(ZERO, INPUT_TYPES.DIGIT)];
+    if (isClearAllEntries(keypadButtonInfo)) {
+        return [createCacheItem(ZERO, DIGITS.zero)];
     }
 
-    if (isClearEntryInput(keypadButtonInfo)) {
+    if (isClearLastEntry(keypadButtonInfo)) {
         return removeLastEntry(calcCache);
     }
 
     const lastEntry = calcCache.slice(-1)[0];
-    if (isReplaceOperator(lastEntry, keypadButtonInfo)) {
-        console.log('replace operator');
+    if (isBackspaceEntry(keypadButtonInfo)) {
+        console.debug('backspace');
+        if (lastEntry?.type === INPUT_TYPES.DIGIT) {
+            const text = lastEntry.text.substring(0, lastEntry.text.length - 1);
+            return replaceLastEntry(
+                calcCache,
+                createCacheItem(text.length === 0 ? ZERO : text, lastEntry)
+            );
+        }
+        return structuredClone(calcCache);
+    }
+
+    if (isReplaceOperatorEntry(lastEntry, keypadButtonInfo)) {
+        console.debug('replace operator');
         return replaceLastEntry(
             calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo)
         );
     }
 
     if (isAddFirstDigit(lastEntry, keypadButtonInfo)) {
-        console.log('add first digit');
-        const text = fixInput(keypadButtonInfo.text);
-        return addEntry(
-            calcCache,
-            createCacheItem(text, keypadButtonInfo.type)
-        );
+        console.debug('add first digit');
+        const text = fixInput(keypadButtonInfo.digit);
+        return addEntry(calcCache, createCacheItem(text, keypadButtonInfo));
     }
 
-    if (isAddOperator(lastEntry, keypadButtonInfo)) {
-        console.log('add operator');
+    if (isAddOperatorEntry(lastEntry, keypadButtonInfo)) {
+        console.debug('add operator');
         return addEntry(
             calcCache,
-            createCacheItem(keypadButtonInfo.text, keypadButtonInfo.type)
+            createCacheItem(keypadButtonInfo.text, keypadButtonInfo)
         );
     }
 
     if (isAddConsecutiveDigit(lastEntry, keypadButtonInfo)) {
-        console.log('add consecutive digit');
-        const text = fixInput(`${lastEntry.text}${keypadButtonInfo.text}`);
+        console.debug('add consecutive digit');
+        const text = fixInput(`${lastEntry.text}${keypadButtonInfo.digit}`);
 
         return replaceLastEntry(
             calcCache,
-            createCacheItem(text, INPUT_TYPES.DIGIT)
+            createCacheItem(text, { type: INPUT_TYPES.DIGIT, id: lastEntry.id })
         );
     }
 
@@ -234,8 +239,8 @@ const fixInput = (input) => {
     return fixedInput;
 };
 
-const createCacheItem = (text, type) => {
-    return { text, type };
+const createCacheItem = (text, inputInfo) => {
+    return { text, type: inputInfo.type, id: inputInfo.id };
 };
 
 const getDisplayText = (cache) => {
@@ -309,14 +314,18 @@ function isAddConsecutiveDigit(lastEntry, keypadButtonInfo) {
     );
 }
 
-function isAddOperator(lastEntry, keypadButtonInfo) {
+function isAddOperatorEntry(lastEntry, keypadButtonInfo) {
     return (
         lastEntry?.type === INPUT_TYPES.DIGIT &&
         keypadButtonInfo.type === INPUT_TYPES.OPERATOR
     );
 }
 
-function isReplaceOperator(lastEntry, keypadButtonInfo) {
+function isBackspaceEntry(keypadButtonInfo) {
+    return keypadButtonInfo.id === OPERATORS.backspace.id;
+}
+
+function isReplaceOperatorEntry(lastEntry, keypadButtonInfo) {
     return (
         lastEntry?.type === INPUT_TYPES.OPERATOR &&
         keypadButtonInfo.type === INPUT_TYPES.OPERATOR
@@ -352,7 +361,7 @@ function removeLastEntry(entries) {
     const newEntries = entries.toSpliced(-1, 1);
     // operations.slice(0, -1);
     if (newEntries.length === 0) {
-        return [createCacheItem(ZERO, INPUT_TYPES.DIGIT)];
+        return [createCacheItem(ZERO, DIGITS.zero)];
     }
 
     return newEntries;
