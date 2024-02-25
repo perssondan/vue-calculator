@@ -1,145 +1,152 @@
 // const ERROR_RESULT = 'ERROR';
 const ZERO = '0';
-const INPUT_TYPES = {
-    OPERATOR: 'operator',
-    DIGIT: 'digit',
+const KEY_TYPES = {
+    OPERATION: 'operation', // basic operations
+    NUMBER: 'number', // 0-9, decimalSeparator
+    EDIT: 'edit', // backspace, clear, clearLastEntry
+    FUNCTION: 'function', // oneOverX, xSquared, squareRoot, toggleSign, percentage
 };
 
-const DIGITS = {
-    zero: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '0',
+const KEYS = {
+    NUMBERS: {
+        zero: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '0',
+        },
+        one: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '1',
+        },
+        two: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '2',
+        },
+        three: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '3',
+        },
+        four: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '4',
+        },
+        five: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '5',
+        },
+        six: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '6',
+        },
+        seven: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '7',
+        },
+        eight: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '8',
+        },
+        nine: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '9',
+        },
+        decimalSeparator: {
+            id: crypto.randomUUID(),
+            type: KEY_TYPES.NUMBER,
+            digit: '.',
+        },
     },
-    one: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '1',
+    OPERATIONS: {
+        divide: {
+            id: crypto.randomUUID(),
+            operator: 'divide',
+            type: KEY_TYPES.OPERATION,
+        },
+        multiply: {
+            id: crypto.randomUUID(),
+            operator: 'multiply',
+            type: KEY_TYPES.OPERATION,
+        },
+        subtract: {
+            id: crypto.randomUUID(),
+            operator: 'subtract',
+            type: KEY_TYPES.OPERATION,
+        },
+        add: {
+            id: crypto.randomUUID(),
+            operator: 'add',
+            type: KEY_TYPES.OPERATION,
+        },
+        equals: {
+            id: crypto.randomUUID(),
+            operator: 'equals',
+            type: KEY_TYPES.OPERATION,
+        },
     },
-    two: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '2',
+    EDITS: {
+        clearLastEntry: {
+            id: crypto.randomUUID(),
+            operator: 'clearLastEntry',
+            type: KEY_TYPES.EDIT,
+        },
+        clear: {
+            id: crypto.randomUUID(),
+            operator: 'clear',
+            type: KEY_TYPES.EDIT,
+        },
+        backspace: {
+            id: crypto.randomUUID(),
+            operator: 'backspace',
+            type: KEY_TYPES.EDIT,
+        },
     },
-    three: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '3',
-    },
-    four: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '4',
-    },
-    five: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '5',
-    },
-    six: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '6',
-    },
-    seven: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '7',
-    },
-    eight: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '8',
-    },
-    nine: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '9',
-    },
-    decimalSeparator: {
-        id: crypto.randomUUID(),
-        type: INPUT_TYPES.DIGIT,
-        digit: '.',
-    },
-};
-
-const OPERATORS = {
-    percentage: {
-        id: crypto.randomUUID(),
-        operator: 'percent',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    clearLastEntry: {
-        id: crypto.randomUUID(),
-        operator: 'clearLastEntry',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    clear: {
-        id: crypto.randomUUID(),
-        operator: 'clear',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    backspace: {
-        id: crypto.randomUUID(),
-        operator: 'backspace',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    oneOverX: {
-        id: crypto.randomUUID(),
-        operator: 'oneOverX',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    xSquared: {
-        id: crypto.randomUUID(),
-        operator: 'xSquared',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    squareRoot: {
-        id: crypto.randomUUID(),
-        operator: 'squareRoot',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    divide: {
-        id: crypto.randomUUID(),
-        operator: 'divide',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    toggleSign: {
-        id: crypto.randomUUID(),
-        operator: 'toggleSign',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    multiply: {
-        id: crypto.randomUUID(),
-        operator: 'multiply',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    subtract: {
-        id: crypto.randomUUID(),
-        operator: 'subtract',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    add: {
-        id: crypto.randomUUID(),
-        operator: 'add',
-        type: INPUT_TYPES.OPERATOR,
-    },
-    equals: {
-        id: crypto.randomUUID(),
-        operator: 'equals',
-        type: INPUT_TYPES.OPERATOR,
+    FUNCTIONS: {
+        percentage: {
+            id: crypto.randomUUID(),
+            operator: 'percent',
+            type: KEY_TYPES.FUNCTION,
+        },
+        oneOverX: {
+            id: crypto.randomUUID(),
+            operator: 'oneOverX',
+            type: KEY_TYPES.FUNCTION,
+        },
+        xSquared: {
+            id: crypto.randomUUID(),
+            operator: 'xSquared',
+            type: KEY_TYPES.FUNCTION,
+        },
+        squareRoot: {
+            id: crypto.randomUUID(),
+            operator: 'squareRoot',
+            type: KEY_TYPES.FUNCTION,
+        },
+        toggleSign: {
+            id: crypto.randomUUID(),
+            operator: 'toggleSign',
+            type: KEY_TYPES.FUNCTION,
+        },
     },
 };
 
 const isClearAllEntries = (keypadButtonInfo) =>
-    keypadButtonInfo.id === OPERATORS.clear.id;
+    keypadButtonInfo.id === KEYS.EDITS.clear.id;
 
 const isClearLastEntry = (keypadButtonInfo) =>
-    keypadButtonInfo.id == OPERATORS.clearLastEntry.id;
+    keypadButtonInfo.id == KEYS.EDITS.clearLastEntry.id;
 
 const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
     if (isClearAllEntries(keypadButtonInfo)) {
-        return [createCacheItem(ZERO, DIGITS.zero)];
+        return [createCacheItem(ZERO, KEYS.NUMBERS.zero)];
     }
 
     if (isClearLastEntry(keypadButtonInfo)) {
@@ -147,16 +154,16 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
     }
 
     const lastEntry = calcCache.slice(-1)[0];
-    if (isBackspaceEntry(keypadButtonInfo)) {
+    if (isBackspaceEntry(lastEntry, keypadButtonInfo)) {
         console.debug('backspace');
-        if (lastEntry?.type === INPUT_TYPES.DIGIT) {
-            const text = lastEntry.text.substring(0, lastEntry.text.length - 1);
-            return replaceLastEntry(
-                calcCache,
-                createCacheItem(text.length === 0 ? ZERO : text, lastEntry)
-            );
-        }
-        return structuredClone(calcCache);
+        // if (lastEntry?.type === INPUT_TYPES.DIGIT) {
+        const text = lastEntry.text.substring(0, lastEntry.text.length - 1);
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(text.length === 0 ? ZERO : text, lastEntry)
+        );
+        // }
+        // return structuredClone(calcCache);
     }
 
     if (isReplaceOperatorEntry(lastEntry, keypadButtonInfo)) {
@@ -187,11 +194,14 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
 
         return replaceLastEntry(
             calcCache,
-            createCacheItem(text, { type: INPUT_TYPES.DIGIT, id: lastEntry.id })
+            createCacheItem(text, {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
         );
     }
 
-    if (!lastEntry && keypadButtonInfo.type === INPUT_TYPES.DIGIT) {
+    if (!lastEntry && keypadButtonInfo.type === KEY_TYPES.NUMBER) {
         throw new Error('No last entry. Expe');
     }
 
@@ -210,7 +220,7 @@ const calculatorParser = (calcCache, keypadButtonInfo) => {
     const updatedCache = updateCacheFromInput(calcCache, keypadButtonInfo);
 
     const lastEntry = calcCache.slice(-1)[0];
-    if (lastEntry?.type === INPUT_TYPES.OPERATOR) {
+    if (lastEntry?.type === KEY_TYPES.OPERATION) {
         return updatedCache;
     }
 
@@ -244,7 +254,7 @@ const createCacheItem = (text, inputInfo) => {
 };
 
 const getDisplayText = (cache) => {
-    return cache.findLast((x) => x.type === INPUT_TYPES.DIGIT)?.text || ZERO;
+    return cache.findLast((x) => x.type === KEY_TYPES.NUMBER)?.text || ZERO;
 };
 
 const add = (firstTerm, secondTerm) => {
@@ -293,42 +303,44 @@ export default {
     xSquared,
     toggleSign,
     percentage,
-    INPUT_TYPES,
-    OPERATORS,
-    DIGITS,
+    KEY_TYPES,
     calculatorParser,
     getDisplayText,
+    KEYS,
 };
 
 function isAddFirstDigit(lastEntry, keypadButtonInfo) {
     return (
-        (!lastEntry || lastEntry.type === INPUT_TYPES.OPERATOR) &&
-        keypadButtonInfo.type === INPUT_TYPES.DIGIT
+        (!lastEntry || lastEntry.type === KEY_TYPES.OPERATION) &&
+        keypadButtonInfo.type === KEY_TYPES.NUMBER
     );
 }
 
 function isAddConsecutiveDigit(lastEntry, keypadButtonInfo) {
     return (
-        lastEntry?.type === INPUT_TYPES.DIGIT &&
-        keypadButtonInfo.type === INPUT_TYPES.DIGIT
+        lastEntry?.type === KEY_TYPES.NUMBER &&
+        keypadButtonInfo.type === KEY_TYPES.NUMBER
     );
 }
 
 function isAddOperatorEntry(lastEntry, keypadButtonInfo) {
     return (
-        lastEntry?.type === INPUT_TYPES.DIGIT &&
-        keypadButtonInfo.type === INPUT_TYPES.OPERATOR
+        lastEntry?.type === KEY_TYPES.NUMBER &&
+        keypadButtonInfo.type === KEY_TYPES.OPERATION
     );
 }
 
-function isBackspaceEntry(keypadButtonInfo) {
-    return keypadButtonInfo.id === OPERATORS.backspace.id;
+function isBackspaceEntry(lastEntry, keypadButtonInfo) {
+    return (
+        lastEntry?.type === KEY_TYPES.NUMBER &&
+        keypadButtonInfo.id === KEYS.EDITS.backspace.id
+    );
 }
 
 function isReplaceOperatorEntry(lastEntry, keypadButtonInfo) {
     return (
-        lastEntry?.type === INPUT_TYPES.OPERATOR &&
-        keypadButtonInfo.type === INPUT_TYPES.OPERATOR
+        lastEntry?.type === KEY_TYPES.OPERATION &&
+        keypadButtonInfo.type === KEY_TYPES.OPERATION
     );
 }
 
@@ -361,7 +373,7 @@ function removeLastEntry(entries) {
     const newEntries = entries.toSpliced(-1, 1);
     // operations.slice(0, -1);
     if (newEntries.length === 0) {
-        return [createCacheItem(ZERO, DIGITS.zero)];
+        return [createCacheItem(ZERO, KEYS.NUMBERS.zero)];
     }
 
     return newEntries;
