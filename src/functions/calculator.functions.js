@@ -7,6 +7,42 @@ const KEY_TYPES = {
     FUNCTION: 'function', // oneOverX, xSquared, squareRoot, toggleSign, percentage
 };
 
+const add = (firstTerm, secondTerm) => {
+    return firstTerm + secondTerm;
+};
+
+const subtract = (firstTerm, secondTerm) => {
+    return firstTerm - secondTerm;
+};
+
+const multiply = (firstFactor, secondFactor) => {
+    return firstFactor * secondFactor;
+};
+
+const divide = (dividend, divisor) => {
+    return dividend / divisor;
+};
+
+const squareRoot = (factor) => {
+    return Math.sqrt(factor);
+};
+
+const oneOverX = (factor) => {
+    return 1 / factor;
+};
+
+const xSquared = (factor) => {
+    return Math.pow(factor, 2);
+};
+
+const toggleSign = (factor) => {
+    return multiply(factor, -1);
+};
+
+const percentage = (dividend) => {
+    return divide(dividend, 100);
+};
+
 const KEYS = {
     NUMBERS: {
         zero: {
@@ -68,21 +104,33 @@ const KEYS = {
     OPERATIONS: {
         divide: {
             id: crypto.randomUUID(),
+            func: divide,
+            params: 2,
+            paramPos: [-1, 1],
             operator: 'divide',
             type: KEY_TYPES.OPERATION,
         },
         multiply: {
             id: crypto.randomUUID(),
+            func: multiply,
+            params: 2,
+            paramPos: [-1, 1],
             operator: 'multiply',
             type: KEY_TYPES.OPERATION,
         },
         subtract: {
             id: crypto.randomUUID(),
+            func: subtract,
+            params: 2,
+            paramPos: [-1, 1],
             operator: 'subtract',
             type: KEY_TYPES.OPERATION,
         },
         add: {
             id: crypto.randomUUID(),
+            func: add,
+            params: 2,
+            paramPos: [-1, 1],
             operator: 'add',
             type: KEY_TYPES.OPERATION,
         },
@@ -110,6 +158,7 @@ const KEYS = {
         },
     },
     FUNCTIONS: {
+        // Functions can be executed on a single number, hence immediately executed
         percentage: {
             id: crypto.randomUUID(),
             operator: 'percent',
@@ -153,17 +202,14 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
         return removeLastEntry(calcCache);
     }
 
-    const lastEntry = calcCache.slice(-1)[0];
+    const lastEntry = getLastEntry(calcCache);
     if (isBackspaceEntry(lastEntry, keypadButtonInfo)) {
         console.debug('backspace');
-        // if (lastEntry?.type === INPUT_TYPES.DIGIT) {
         const text = lastEntry.text.substring(0, lastEntry.text.length - 1);
         return replaceLastEntry(
             calcCache,
             createCacheItem(text.length === 0 ? ZERO : text, lastEntry)
         );
-        // }
-        // return structuredClone(calcCache);
     }
 
     if (isReplaceOperatorEntry(lastEntry, keypadButtonInfo)) {
@@ -210,6 +256,10 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
     return structuredClone(calcCache);
 };
 
+function getLastEntry(calcCache) {
+    return calcCache.slice(-1)[0];
+}
+
 /**
  * Parse keypadButton infos into calculator cache.
  * @param {Array} calcCache Array of input objects
@@ -219,12 +269,108 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
 const calculatorParser = (calcCache, keypadButtonInfo) => {
     const updatedCache = updateCacheFromInput(calcCache, keypadButtonInfo);
 
-    const lastEntry = calcCache.slice(-1)[0];
-    if (lastEntry?.type === KEY_TYPES.OPERATION) {
-        return updatedCache;
+    const lastEntry = getLastEntry(updatedCache);
+    if (lastEntry?.id === KEYS.OPERATIONS.equals.id) {
+        return doEqualsOperation(updatedCache);
     }
 
     return updatedCache;
+};
+
+const getFunction = (id) => {
+    if (id === KEYS.OPERATIONS.add.id) return add;
+    if (id === KEYS.OPERATIONS.subtract.id) return subtract;
+    if (id === KEYS.OPERATIONS.divide.id) return divide;
+    if (id === KEYS.OPERATIONS.multiply.id) return multiply;
+
+    return null;
+};
+
+function logCalculation(inputToCalculate) {
+    const parseCalculation = inputToCalculate.map((x) => x.text).join(' ');
+    console.log('extracted:', parseCalculation);
+}
+
+const doEqualsOperation = (calcCache) => {
+    const indexOfLastEquals = calcCache.findLastIndex(
+        (x) => x.id === KEYS.OPERATIONS.equals.id
+    );
+
+    if (indexOfLastEquals === -1) return calcCache;
+
+    const indexOfPreviousEquals = calcCache
+        .slice(0, indexOfLastEquals)
+        .findLastIndex((x) => x.id === KEYS.OPERATIONS.equals.id);
+
+    const inputToCalculate = calcCache.slice(
+        indexOfPreviousEquals + 1,
+        indexOfLastEquals
+    );
+
+    while (inputToCalculate.length > 1) {
+        logCalculation(inputToCalculate);
+
+        const indexOfMultiplicationOperation = inputToCalculate.findIndex(
+            (x) =>
+                x.id === KEYS.OPERATIONS.multiply.id ||
+                x.id === KEYS.OPERATIONS.divide.id
+        );
+        if (indexOfMultiplicationOperation !== -1) {
+            const operation = inputToCalculate[indexOfMultiplicationOperation];
+            const functionToUse = getFunction(operation.id);
+            const firstTerm = parseFloat(
+                inputToCalculate[indexOfMultiplicationOperation - 1].text
+            );
+            const secondTerm = parseFloat(
+                inputToCalculate[indexOfMultiplicationOperation + 1].text
+            );
+            const result = functionToUse(firstTerm, secondTerm);
+            inputToCalculate.splice(
+                indexOfMultiplicationOperation - 1,
+                3,
+                createCacheItem(result.toString(), {
+                    type: KEY_TYPES.NUMBER,
+                    id: 'number-result',
+                })
+            );
+            continue;
+        }
+        const indexOfArithmeticOperation = inputToCalculate.findIndex(
+            (x) =>
+                x.id === KEYS.OPERATIONS.add.id ||
+                x.id === KEYS.OPERATIONS.subtract.id
+        );
+        if (indexOfArithmeticOperation !== -1) {
+            const operation = inputToCalculate[indexOfArithmeticOperation];
+            const functionToUse = getFunction(operation.id);
+            const firstTerm = parseFloat(
+                inputToCalculate[indexOfArithmeticOperation - 1].text
+            );
+            const secondTerm = parseFloat(
+                inputToCalculate[indexOfArithmeticOperation + 1].text
+            );
+            const result = functionToUse(firstTerm, secondTerm);
+            inputToCalculate.splice(
+                indexOfArithmeticOperation - 1,
+                3,
+                createCacheItem(result.toString(), {
+                    type: KEY_TYPES.NUMBER,
+                    id: 'number-result',
+                })
+            );
+            continue;
+        }
+    }
+
+    const temp = addEntry(
+        calcCache,
+        createCacheItem(inputToCalculate[0].text, {
+            type: KEY_TYPES.NUMBER,
+            id: 'number-result',
+        })
+    );
+
+    return addEntry(temp, createCacheItem('=', KEYS.OPERATIONS.equals));
 };
 
 const fixInput = (input) => {
@@ -255,42 +401,6 @@ const createCacheItem = (text, inputInfo) => {
 
 const getDisplayText = (cache) => {
     return cache.findLast((x) => x.type === KEY_TYPES.NUMBER)?.text || ZERO;
-};
-
-const add = (firstTerm, secondTerm) => {
-    return firstTerm + secondTerm;
-};
-
-const subtract = (firstTerm, secondTerm) => {
-    return firstTerm - secondTerm;
-};
-
-const multiply = (firstFactor, secondFactor) => {
-    return firstFactor * secondFactor;
-};
-
-const divide = (dividend, divisor) => {
-    return dividend / divisor;
-};
-
-const squareRoot = (factor) => {
-    return Math.sqrt(factor);
-};
-
-const oneOverX = (factor) => {
-    return 1 / factor;
-};
-
-const xSquared = (factor) => {
-    return Math.pow(factor, 2);
-};
-
-const toggleSign = (factor) => {
-    return multiply(factor, -1);
-};
-
-const percentage = (dividend) => {
-    return divide(dividend, 100);
 };
 
 export default {

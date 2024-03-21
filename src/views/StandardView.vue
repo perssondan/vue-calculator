@@ -21,9 +21,9 @@
             </b-col>
         </b-row>
         <b-row>
-            <li v-for="item in entries" :key="item.id">
+            <b-col v-for="item in entries" :key="item.id">
                 {{ item.text }}
-            </li>
+            </b-col>
         </b-row>
     </b-container>
 </template>
@@ -44,7 +44,7 @@ export default {
     },
     methods: {
         keypadPressed(keypadButtonInfo) {
-            console.log(keypadButtonInfo);
+            // console.log(keypadButtonInfo);
             const parsedEntries = calculatorFunctions.calculatorParser(
                 this.entries,
                 keypadButtonInfo
