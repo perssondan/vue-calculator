@@ -40,6 +40,75 @@ const updateCacheFromInput = (calcCache, keypadButtonInfo) => {
         );
     }
 
+    if (
+        keypadButtonInfo.id === KEYS.FUNCTIONS.oneOverX.id &&
+        lastEntry?.type === KEY_TYPES.NUMBER
+    ) {
+        const result = 1 / parseFloat(lastEntry.text);
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(result.toString(), {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
+        );
+    }
+
+    if (
+        keypadButtonInfo.id === KEYS.FUNCTIONS.squareRoot.id &&
+        lastEntry?.type === KEY_TYPES.NUMBER
+    ) {
+        const result = Math.sqrt(parseFloat(lastEntry.text));
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(result.toString(), {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
+        );
+    }
+
+    if (
+        keypadButtonInfo.id === KEYS.FUNCTIONS.xSquared.id &&
+        lastEntry?.type === KEY_TYPES.NUMBER
+    ) {
+        const result = Math.pow(parseFloat(lastEntry.text), 2);
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(result.toString(), {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
+        );
+    }
+
+    if (
+        keypadButtonInfo.id === KEYS.FUNCTIONS.toggleSign.id &&
+        lastEntry?.type === KEY_TYPES.NUMBER
+    ) {
+        const result = parseFloat(lastEntry.text) * -1;
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(result.toString(), {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
+        );
+    }
+
+    if (
+        keypadButtonInfo.id === KEYS.FUNCTIONS.percentage.id &&
+        lastEntry?.type === KEY_TYPES.NUMBER
+    ) {
+        const result = parseFloat(lastEntry.text) / 100;
+        return replaceLastEntry(
+            calcCache,
+            createCacheItem(result.toString(), {
+                type: KEY_TYPES.NUMBER,
+                id: lastEntry.id,
+            })
+        );
+    }
 
     if (!lastEntry && keypadButtonInfo.type === KEY_TYPES.NUMBER) {
         throw new Error(
