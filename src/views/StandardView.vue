@@ -33,7 +33,8 @@
 import CalculatorHeader from '@/components/CalculatorHeader.vue';
 import StandardDisplay from '@/components/StandardDisplay.vue';
 import StandardKeypad from '@/components/StandardKeypad.vue';
-import calculatorFunctions from '../functions/calculator.functions';
+import { KEYS, KEY_TYPES } from '../functions/calculator.constants.js';
+import calculatorEngine from '../functions/calculator.engine.js';
 
 export default {
     name: 'StandardView',
@@ -44,14 +45,13 @@ export default {
     },
     methods: {
         keypadPressed(keypadButtonInfo) {
-            // console.log(keypadButtonInfo);
-            const parsedEntries = calculatorFunctions.calculatorParser(
+            const parsedEntries = calculatorEngine.calculatorParser(
                 this.entries,
                 keypadButtonInfo
             );
             this.entries = parsedEntries;
 
-            this.display = calculatorFunctions.getDisplayText(this.entries);
+            this.display = calculatorEngine.getDisplayText(this.entries);
         },
         keyPressed(event) {
             const { key } = event;
@@ -83,130 +83,130 @@ export default {
         window.addEventListener('keydown', this.keyPressed);
         this.entries.push({
             text: '0',
-            type: calculatorFunctions.KEY_TYPES.NUMBER,
+            type: KEY_TYPES.NUMBER,
         });
-        this.display = calculatorFunctions.getDisplayText(this.entries);
+        this.display = calculatorEngine.getDisplayText(this.entries);
         this.keypadButtonInfos = [
             {
-                ...calculatorFunctions.KEYS.FUNCTIONS.percentage,
+                ...KEYS.FUNCTIONS.percentage,
                 text: '%',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.EDITS.clearLastEntry,
+                ...KEYS.EDITS.clearLastEntry,
                 text: 'CE',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.EDITS.clear,
+                ...KEYS.EDITS.clear,
                 text: 'C',
                 key: 'Escape',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.EDITS.backspace,
+                ...KEYS.EDITS.backspace,
                 text: '&#9224;',
                 color: '#444',
                 key: 'Backspace',
             },
             {
-                ...calculatorFunctions.KEYS.FUNCTIONS.oneOverX,
+                ...KEYS.FUNCTIONS.oneOverX,
                 text: '&#185;/&#8339;',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.FUNCTIONS.xSquared,
+                ...KEYS.FUNCTIONS.xSquared,
                 text: '&#8339;&#178;',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.FUNCTIONS.squareRoot,
+                ...KEYS.FUNCTIONS.squareRoot,
                 text: '&#178;&#8730;&#8339;',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.OPERATIONS.divide,
+                ...KEYS.OPERATIONS.divide,
                 text: '/',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.seven,
+                ...KEYS.NUMBERS.seven,
                 text: '7',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.eight,
+                ...KEYS.NUMBERS.eight,
                 text: '8',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.nine,
+                ...KEYS.NUMBERS.nine,
                 text: '9',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.OPERATIONS.multiply,
+                ...KEYS.OPERATIONS.multiply,
                 text: 'x',
                 key: '*',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.four,
+                ...KEYS.NUMBERS.four,
                 text: '4',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.five,
+                ...KEYS.NUMBERS.five,
                 text: '5',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.six,
+                ...KEYS.NUMBERS.six,
                 text: '6',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.OPERATIONS.subtract,
+                ...KEYS.OPERATIONS.subtract,
                 text: '-',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.one,
+                ...KEYS.NUMBERS.one,
                 text: '1',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.two,
+                ...KEYS.NUMBERS.two,
                 text: '2',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.three,
+                ...KEYS.NUMBERS.three,
                 text: '3',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.OPERATIONS.add,
+                ...KEYS.OPERATIONS.add,
                 text: '+',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.FUNCTIONS.toggleSign,
+                ...KEYS.FUNCTIONS.toggleSign,
                 text: '&#177;',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.zero,
+                ...KEYS.NUMBERS.zero,
                 text: '0',
                 color: 'black',
             },
             {
-                ...calculatorFunctions.KEYS.NUMBERS.decimalSeparator,
+                ...KEYS.NUMBERS.decimalSeparator,
                 text: '.',
                 color: '#444',
             },
             {
-                ...calculatorFunctions.KEYS.OPERATIONS.equals,
+                ...KEYS.OPERATIONS.equals,
                 text: '=',
                 color: 'green',
                 key: 'Enter',
